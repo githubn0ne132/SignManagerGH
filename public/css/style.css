@@ -1,0 +1,148 @@
+:root {
+    --primary-color: #4A90E2;
+    --background-color: #f4f6f8;
+    --card-bg: #ffffff;
+    --text-color: #333;
+    --border-color: #ddd;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+header {
+    width: 100%;
+    background: var(--card-bg);
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+h1, h2, h3 {
+    margin: 0;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin-top: 2rem;
+    display: flex;
+    gap: 2rem;
+}
+
+.card {
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+/* Auth Screens */
+.auth-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh;
+    width: 100%;
+}
+
+.login-box {
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+}
+
+input[type="text"], input[type="password"], input[type="number"], select {
+    width: 100%;
+    padding: 0.8rem;
+    margin: 0.5rem 0;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #357ABD;
+}
+
+/* Admin Layout */
+.admin-layout {
+    display: flex;
+    width: 100%;
+    gap: 20px;
+}
+
+.sidebar {
+    width: 300px;
+    flex-shrink: 0;
+}
+
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.canvas-container-wrapper {
+    border: 2px dashed var(--border-color);
+    padding: 20px;
+    background: #fafafa;
+    margin-top: 20px;
+    overflow: auto;
+}
+
+.properties-panel {
+    margin-top: 20px;
+}
+
+.field-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+}
+
+.field-list-item:hover {
+    background-color: #f9f9f9;
+}
+
+.field-list-item.active {
+    background-color: #e3f2fd;
+}
+
+.delete-btn {
+    background: #ff5252;
+    padding: 5px 10px;
+    font-size: 0.8rem;
+}
+
+/* User Layout */
+.user-form {
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 2rem;
+}

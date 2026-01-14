@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Signature - Admin</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Roboto&family=Open+Sans&family=Lato&family=Montserrat&display=swap"
+        rel="stylesheet">
+    <!-- Fabric.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+</head>
+
+<body>
+
+    <header>
+        <h2>Admin SignManager</h2>
+        <button id="logoutBtn" style="display:none; background: #666;">Déconnexion</button>
+    </header>
+
+    <!-- Login Section -->
+    <div id="loginSection" class="auth-wrapper">
+        <div class="card login-box">
+            <h3>Connexion Admin</h3>
+            <input type="password" id="adminPassword" placeholder="Entrez le mot de passe">
+            <button id="loginBtn">Se connecter</button>
+            <p id="loginError" style="color:red; display:none;">Mot de passe invalide</p>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="container admin-layout" style="display:none;">
+
+        <!-- Sidebar: Configuration & Fields -->
+        <div class="sidebar">
+            <div class="card">
+                <h3>Config du Template</h3>
+                <label>Image de Fond</label>
+                <input type="file" id="bgImageInput" accept="image/*">
+
+                <label>Largeur Canvas</label>
+                <input type="number" id="canvasWidth" value="600">
+
+                <label>Hauteur Canvas</label>
+                <input type="number" id="canvasHeight" value="200">
+
+                <button id="saveConfigBtn" style="margin-top: 10px; width: 100%;">Enregistrer Config</button>
+            </div>
+
+            <!-- Custom Fonts -->
+            <div class="card" style="margin-top: 20px;">
+                <h3>Polices Personnalisées</h3>
+                <input type="text" id="fontNameInput" placeholder="Nom de la police (ex: MaPolice)">
+                <input type="file" id="fontFileInput" accept=".ttf,.otf,.woff,.woff2">
+                <button id="uploadFontBtn" style="width:100%; margin-top: 5px;">Téléverser Police</button>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h3>Gérer les Champs</h3>
+                <input type="text" id="newFieldLabel" placeholder="Nom du champ (ex: Nom Complet)">
+                <input type="text" id="newFieldVar" placeholder="ID Variable (ex: full_name)">
+                <button id="addFieldBtn" style="width:100%;">Ajouter Champ</button>
+
+                <div id="fieldsList" style="margin-top: 15px; max-height: 300px; overflow-y: auto;">
+                    <!-- Field items will go here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Main: Canvas & Properties -->
+        <div class="main-content">
+            <div class="canvas-container-wrapper">
+                <canvas id="signatureCanvas"></canvas>
+            </div>
+
+            <div class="card properties-panel" id="propertiesPanel" style="display:none; width: 100%;">
+                <h3>Propriétés du Champ: <span id="propFieldName"></span></h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <div style="flex: 1;">
+                        <label>Police</label>
+                        <select id="propFontFamily">
+                            <option value="Arial">Arial</option>
+                            <option value="Inter">Inter</option>
+                            <option value="Roboto">Roboto</option>
+                            <option value="Open Sans">Open Sans</option>
+                            <option value="Lato">Lato</option>
+                            <option value="Montserrat">Montserrat</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                    <div style="flex: 1;">
+                        <label>Taille</label>
+                        <input type="number" id="propFontSize">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Couleur</label>
+                        <input type="color" id="propColor" style="height: 40px; padding: 2px;">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                    <div style="flex: 1;">
+                        <label>Pos X</label>
+                        <input type="number" id="propX">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Pos Y</label>
+                        <input type="number" id="propY">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Espacement</label>
+                        <input type="number" id="propSpacing" step="5" value="0">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button id="updateFieldBtn">Mettre à jour</button>
+                    <button id="deleteSelectedBtn" class="delete-btn">Supprimer</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="js/admin.js"></script>
+</body>
+
+</html>

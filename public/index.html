@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Signature</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Roboto&family=Open+Sans&family=Lato&family=Montserrat&display=swap"
+        rel="stylesheet">
+    <!-- Fabric.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+</head>
+
+<body>
+
+    <header>
+        <h2>Générateur de Signature</h2>
+    </header>
+
+    <!-- Login / ID Section -->
+    <div id="loginSection" class="auth-wrapper">
+        <div class="card login-box">
+            <h3>Entrez votre Identifiant</h3>
+            <p>Veuillez entrer votre email ou matricule pour récupérer/créer votre signature.</p>
+            <input type="text" id="userIdInput" placeholder="ex: jean.dupont@entreprise.com">
+            <button id="startBtn">Continuer</button>
+        </div>
+    </div>
+
+    <!-- User Dashboard -->
+    <div id="userDashboard" class="container" style="display:none; flex-direction: column; align-items: center;">
+
+        <div
+            style="display: flex; gap: 2rem; width: 100%; max-width: 1200px; flex-wrap: wrap; justify-content: center;">
+
+            <!-- Form Side -->
+            <div class="card user-form" style="flex: 1; min-width: 300px;">
+                <h3>Vos Informations</h3>
+                <div id="dynamicForm">
+                    <!-- Dynamic Inputs will appear here -->
+                </div>
+                <!-- <button id="saveDataBtn" style="margin-top: 15px;">Save Data</button> -->
+                <p style="font-size: 0.8rem; color: #666; margin-top: 10px;">Les changements sont enregistrés
+                    automatiquement.</p>
+            </div>
+
+            <!-- Preview Side -->
+            <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; align-items: center;">
+                <h3 style="margin-bottom: 10px;">Aperçu</h3>
+                <div class="canvas-container-wrapper" style="background: white; padding: 0; border: 1px solid #ddd;">
+                    <canvas id="signatureCanvas"></canvas>
+                </div>
+                <button id="downloadBtn" style="margin-top: 20px; background-color: #28a745;">Télécharger
+                    Signature</button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+
+</html>
