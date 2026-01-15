@@ -1,8 +1,28 @@
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./signature_app.db');
+const path = require('path');
+const util = require('util');
 
+// Create/Open Database
+const dbPath = path.resolve(__dirname, 'signature_app.db');
+const db = new sqlite3.Database(dbPath);
+
+// Promisify Standard Methods
+db.getAsync = util.promisify(db.get);
+db.allAsync = util.promisify(db.all);
+
+// Custom Promisified 'run' to return context (lastID, changes)
+db.runAsync = function (sql, params = []) {
+    return new Promise((resolve, reject) => {
+        db.run(sql, params, function (err) {
+            if (err) return reject(err);
+            resolve({ lastID: this.lastID, changes: this.changes });
+        });
+    });
+};
+
+// Initialize Schema
 db.serialize(() => {
-    // 1. Templates Table (Replaces template_config)
+    // 1. Templates Table
     db.run(`CREATE TABLE IF NOT EXISTS templates (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
@@ -19,7 +39,7 @@ db.serialize(() => {
         }
     });
 
-    // 2. Signature Fields Table (Added template_id)
+    // 2. Signature Fields Table
     db.run(`CREATE TABLE IF NOT EXISTS signature_fields (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         template_id INTEGER,
@@ -35,20 +55,30 @@ db.serialize(() => {
         FOREIGN KEY(template_id) REFERENCES templates(id) ON DELETE CASCADE
     )`);
 
-    // 3. User Data Table (Unchanged)
+    // 3. User Data Table
     db.run(`CREATE TABLE IF NOT EXISTS user_data (
         user_identifier TEXT PRIMARY KEY,
         payload TEXT
     )`);
 
-    // 4. Custom Fonts Table (Unchanged)
+    // 4. Custom Fonts Table
     db.run(`CREATE TABLE IF NOT EXISTS custom_fonts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         font_name TEXT,
         file_path TEXT
     )`, (err) => {
         if (!err) {
-            console.log("Database initialized.");
+            console.log("Database initialized and connected.");
         }
     });
 });
+
+// Export Wrapper
+module.exports = {
+    get: (sql, params) => db.getAsync(sql, params),
+    all: (sql, params) => db.allAsync(sql, params),
+    run: (sql, params) => db.runAsync(sql, params),
+    // Expose raw db just in case, though we should avoid using it
+    raw: db,
+    serialize: (cb) => db.serialize(cb)
+};
