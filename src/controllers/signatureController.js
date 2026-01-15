@@ -34,9 +34,7 @@ exports.getHtmlSnippet = async (req, res) => {
             }
         }
 
-        const timestamp = new Date().getTime();
-
-        const html = `<a href="${redirectUrl}"><img src="${fullUrl}?t=${timestamp}" alt="${altText}" crossorigin="anonymous"></a>`;
+        const html = `<a href="${redirectUrl}"><img src="${fullUrl}" alt="${altText}" crossorigin="anonymous"></a>`;
         res.send(html);
     } catch (err) {
         console.error("Error generating HTML snippet:", err);
