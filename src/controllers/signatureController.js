@@ -14,7 +14,7 @@ exports.getHtmlSnippet = async (req, res) => {
 
         const host = req.get('host');
         const protocol = req.protocol;
-        const fullUrl = `${protocol}://${host}/signature/${userRow.public_id}/image.png`;
+        const fullUrl = `${protocol}://${host}/signature/${userId}/image.png`;
 
         // Fetch active template fields to determine what variables to show
         // We'll just grab the first two variable IDs from the active template's fields
@@ -45,11 +45,11 @@ exports.getHtmlSnippet = async (req, res) => {
 };
 
 exports.getSignatureImage = async (req, res) => {
-    const publicId = req.params.publicId;
+    const username = req.params.username;
 
     try {
         // 1. Get User Data
-        const userRow = await db.get("SELECT payload FROM user_data WHERE public_id = ?", [publicId]);
+        const userRow = await db.get("SELECT payload FROM user_data WHERE user_identifier = ?", [username]);
         const userData = userRow ? JSON.parse(userRow.payload) : {};
 
         // 2. Get Active Template
