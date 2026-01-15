@@ -1,0 +1,12 @@
+services:
+  signmanager:
+    build:
+      dockerfile: Dockerfile
+    container_name: signmanager
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./signature_app.db:/app/signature_app.db
+      - ./uploads:/app/uploads
+      - ./fonts:/app/fonts
+    restart: unless-stopped
