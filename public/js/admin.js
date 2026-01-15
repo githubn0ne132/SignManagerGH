@@ -2,6 +2,8 @@
 let canvas;
 let adminPassword = '';
 let currentFields = [];
+let currentTemplateId = null;
+let templates = [];
 
 // DOM Elements
 const loginSection = document.getElementById('loginSection');
@@ -9,6 +11,15 @@ const adminDashboard = document.getElementById('adminDashboard');
 const loginBtn = document.getElementById('loginBtn');
 const loginError = document.getElementById('loginError');
 const adminPasswordInput = document.getElementById('adminPassword');
+
+// Template Elements
+const templateSelect = document.getElementById('templateSelect');
+const newTemplateBtn = document.getElementById('newTemplateBtn');
+const templateActions = document.getElementById('templateActions');
+const templateNameInput = document.getElementById('templateNameInput');
+const isActiveTemplate = document.getElementById('isActiveTemplate');
+const deleteTemplateBtn = document.getElementById('deleteTemplateBtn');
+const saveTemplateNameBtn = document.getElementById('saveTemplateNameBtn');
 
 const canvasWidthInput = document.getElementById('canvasWidth');
 const canvasHeightInput = document.getElementById('canvasHeight');
@@ -71,8 +82,7 @@ async function initAdmin() {
     canvas = new fabric.Canvas('signatureCanvas');
 
     await loadAvailableFonts(); // Load custom fonts first
-    await loadConfig();
-    await loadFields();
+    await loadTemplates();
 
     // Event Listeners for Canvas
     canvas.on('object:modified', (e) => {
@@ -86,11 +96,140 @@ async function initAdmin() {
     });
 }
 
+// --- Templates ---
+
+async function loadTemplates() {
+    const res = await fetch('/api/templates');
+    templates = await res.json();
+
+    templateSelect.innerHTML = '';
+
+    if (templates.length === 0) {
+        // Should not happen as DB creates default
+        return;
+    }
+
+    templates.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.innerText = t.name + (t.is_active ? ' (Actif)' : '');
+        templateSelect.appendChild(opt);
+    });
+
+    // Select active or first
+    if (!currentTemplateId) {
+        const active = templates.find(t => t.is_active);
+        currentTemplateId = active ? active.id : templates[0].id;
+    }
+
+    templateSelect.value = currentTemplateId;
+    loadTemplateDetails(currentTemplateId);
+}
+
+templateSelect.addEventListener('change', (e) => {
+    currentTemplateId = parseInt(e.target.value);
+    loadTemplateDetails(currentTemplateId);
+});
+
+async function loadTemplateDetails(id) {
+    const template = templates.find(t => t.id === id);
+    if (!template) return;
+
+    // Update UI
+    templateActions.style.display = 'block';
+    templateNameInput.value = template.name;
+    isActiveTemplate.checked = !!template.is_active;
+
+    // Config inputs
+    canvasWidthInput.value = template.canvas_width;
+    canvasHeightInput.value = template.canvas_height;
+
+    // Canvas dimensions
+    canvas.setWidth(template.canvas_width);
+    canvas.setHeight(template.canvas_height);
+
+    // Background
+    if (template.bg_image_path) {
+        setBackgroundImage(template.bg_image_path);
+    } else {
+        canvas.setBackgroundImage(null, canvas.renderAll.bind(canvas));
+        canvas.backgroundColor = '#ffffff';
+    }
+
+    // Load Fields
+    await loadFields(id);
+}
+
+newTemplateBtn.addEventListener('click', async () => {
+    const name = prompt("Nom du nouveau template:", "Nouveau Template");
+    if (!name) return;
+
+    const res = await fetch('/api/templates', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-admin-password': adminPassword
+        },
+        body: JSON.stringify({ name })
+    });
+
+    const data = await res.json();
+    if (data.id) {
+        currentTemplateId = data.id;
+        await loadTemplates(); // Reload list and select new
+        alert('Template créé');
+    } else {
+        alert('Erreur: ' + data.error);
+    }
+});
+
+saveTemplateNameBtn.addEventListener('click', async () => {
+    if (!currentTemplateId) return;
+    // We reuse the update config endpoint but just for name? 
+    // Actually the PUT /api/templates/:id endpoint handles name too.
+    // We should probably just trigger the saveConfigBtn logic or separate it.
+    // Let's assume saveConfigBtn handles everything for the template entry.
+    // For specific "rename" button, we can just save config.
+    saveConfigBtn.click();
+});
+
+isActiveTemplate.addEventListener('change', async (e) => {
+    if (!currentTemplateId) return;
+    if (e.target.checked) {
+        // Set active
+        const res = await fetch(`/api/templates/${currentTemplateId}/active`, {
+            method: 'PUT',
+            headers: { 'x-admin-password': adminPassword }
+        });
+        const data = await res.json();
+        if (data.success) {
+            await loadTemplates(); // Refresh to show (Active) label
+        }
+    }
+});
+
+deleteTemplateBtn.addEventListener('click', async () => {
+    if (!currentTemplateId) return;
+    if (!confirm("Supprimer ce template ?")) return;
+
+    const res = await fetch(`/api/templates/${currentTemplateId}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-password': adminPassword }
+    });
+
+    const data = await res.json();
+    if (data.success) {
+        currentTemplateId = null;
+        await loadTemplates();
+    } else {
+        alert('Erreur lors de la suppression');
+    }
+});
+
+
 // --- Font Management ---
 
 async function loadAvailableFonts() {
-    // Existing defaults
-    // Fetch customs
     try {
         const res = await fetch('/api/fonts');
         const fonts = await res.json();
@@ -107,7 +246,6 @@ async function loadAvailableFonts() {
             propFontFamily.appendChild(option);
 
             // Add @font-face
-            // Path is absolute relative to server root
             const fontPath = '/' + font.file_path;
             const rule = `
                 @font-face {
@@ -139,7 +277,7 @@ uploadFontBtn.addEventListener('click', async () => {
         const data = await res.json();
         if (data.id) {
             alert("Police téléversée. Rechargement...");
-            location.reload(); // Simple reload to refresh font options and css
+            location.reload();
         } else {
             alert('Échec du téléversement');
         }
@@ -150,23 +288,6 @@ uploadFontBtn.addEventListener('click', async () => {
 });
 
 // --- Config, Fields, & Canvas ---
-
-async function loadConfig() {
-    const res = await fetch('/api/config');
-    const config = await res.json();
-
-    if (config) {
-        canvasWidthInput.value = config.canvas_width;
-        canvasHeightInput.value = config.canvas_height;
-
-        canvas.setWidth(config.canvas_width);
-        canvas.setHeight(config.canvas_height);
-
-        if (config.bg_image_path) {
-            setBackgroundImage(config.bg_image_path);
-        }
-    }
-}
 
 function setBackgroundImage(url) {
     const imgUrl = url.startsWith('http') || url.startsWith('/') ? url : '/' + url;
@@ -179,17 +300,21 @@ function setBackgroundImage(url) {
 }
 
 saveConfigBtn.addEventListener('click', async () => {
+    if (!currentTemplateId) return;
+
     const formData = new FormData();
     formData.append('canvas_width', canvasWidthInput.value);
     formData.append('canvas_height', canvasHeightInput.value);
+    formData.append('name', templateNameInput.value);
 
     if (bgImageInput.files[0]) {
         formData.append('bgImage', bgImageInput.files[0]);
     }
 
     try {
-        const res = await fetch('/api/config', {
-            method: 'POST',
+        // PUT to /api/templates/:id
+        const res = await fetch(`/api/templates/${currentTemplateId}`, {
+            method: 'PUT',
             headers: { 'x-admin-password': adminPassword },
             body: formData
         });
@@ -202,6 +327,7 @@ saveConfigBtn.addEventListener('click', async () => {
             if (data.bg_image_path) {
                 setBackgroundImage(data.bg_image_path);
             }
+            await loadTemplates(); // Refresh name in list if changed
         } else {
             alert('Erreur lors de l\'enregistrement de la config');
         }
@@ -211,8 +337,8 @@ saveConfigBtn.addEventListener('click', async () => {
     }
 });
 
-async function loadFields() {
-    const res = await fetch('/api/fields');
+async function loadFields(templateId) {
+    const res = await fetch(`/api/fields?template_id=${templateId}`);
     currentFields = await res.json();
 
     renderFieldsList();
@@ -232,7 +358,11 @@ function renderFieldsList() {
 
 function renderCanvasObjects() {
     canvas.clear();
-    loadConfig();
+    // Re-apply background
+    const template = templates.find(t => t.id === currentTemplateId);
+    if (template && template.bg_image_path) {
+        setBackgroundImage(template.bg_image_path);
+    }
 
     currentFields.forEach(field => {
         const text = new fabric.Text(field.field_label, {
@@ -250,12 +380,15 @@ function renderCanvasObjects() {
 }
 
 addFieldBtn.addEventListener('click', async () => {
+    if (!currentTemplateId) return alert("Aucun template sélectionné");
+
     const label = newFieldLabel.value;
     const variable = newFieldVar.value;
 
     if (!label || !variable) return alert('Veuillez remplir le Nom et l\'ID Variable');
 
     const newField = {
+        template_id: currentTemplateId,
         field_label: label,
         variable_id: variable,
         x_pos: 50,
@@ -280,7 +413,7 @@ addFieldBtn.addEventListener('click', async () => {
     if (data.id) {
         newFieldLabel.value = '';
         newFieldVar.value = '';
-        await loadFields();
+        await loadFields(currentTemplateId);
     }
 });
 
@@ -329,6 +462,7 @@ async function saveFieldUpdate(id, obj) {
 
     const updatedProps = {
         id: id,
+        template_id: currentTemplateId, // Important to keep it linked
         field_label: propFieldName.innerText,
         variable_id: obj.data.variable_id,
 
@@ -354,7 +488,7 @@ async function saveFieldUpdate(id, obj) {
     const data = await res.json();
     if (data.id) {
         canvas.renderAll();
-        await loadFields();
+        await loadFields(currentTemplateId);
         alert('Champ mis à jour');
     }
 }
@@ -367,6 +501,6 @@ async function deleteField(id) {
         headers: { 'x-admin-password': adminPassword }
     });
 
-    await loadFields();
+    await loadFields(currentTemplateId);
     propertiesPanel.style.display = 'none';
 }

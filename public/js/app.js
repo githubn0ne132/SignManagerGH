@@ -40,6 +40,7 @@ async function initUser() {
 
     generateForm();
     renderCanvas();
+    updateOutlookInfo();
 }
 
 async function loadAvailableFonts() {
@@ -66,7 +67,8 @@ async function loadAvailableFonts() {
 }
 
 async function loadConfig() {
-    const res = await fetch('/api/config');
+    const res = await fetch('/api/templates/active');
+    if (!res.ok) return; // Handle 404 if no active template
     const config = await res.json();
 
     if (config) {
@@ -186,6 +188,7 @@ async function saveData() {
             body: JSON.stringify(userData)
         });
         console.log('Data saved');
+        updateOutlookInfo();
     } catch (e) {
         console.error('Save failed', e);
     }
@@ -205,3 +208,23 @@ downloadBtn.addEventListener('click', () => {
     link.click();
     document.body.removeChild(link);
 });
+
+// --- Outlook & Static Preview ---
+const outlookCode = document.getElementById('outlookCode');
+const staticPreview = document.getElementById('staticPreview');
+
+function updateOutlookInfo() {
+    const origin = window.location.origin;
+    const imageUrl = `${origin}/signature/${currentUser}/image.png`;
+
+    // Force cache bypass for preview
+    if (staticPreview) {
+        staticPreview.src = imageUrl + '?t=' + new Date().getTime();
+    }
+
+    // HTML Code
+    if (outlookCode) {
+        const html = `<a href="#"><img src="${imageUrl}" alt="Signature"></a>`;
+        outlookCode.value = html;
+    }
+}

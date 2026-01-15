@@ -36,6 +36,29 @@
 
         <!-- Sidebar: Configuration & Fields -->
         <div class="sidebar">
+            <!-- Template Management -->
+            <div class="card" style="margin-bottom: 20px;">
+                <h3>Templates</h3>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <select id="templateSelect" style="flex: 1;">
+                        <option value="">Chargement...</option>
+                    </select>
+                    <button id="newTemplateBtn" style="padding: 0 10px;">+</button>
+                </div>
+
+                <div id="templateActions" style="display: none;">
+                    <label>Nom du Template</label>
+                    <input type="text" id="templateNameInput">
+
+                    <div style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between;">
+                        <label style="margin:0;"><input type="checkbox" id="isActiveTemplate"> Actif par défaut</label>
+                        <button id="deleteTemplateBtn" class="delete-btn"
+                            style="font-size: 0.8rem; padding: 2px 5px;">Supprimer</button>
+                    </div>
+                    <button id="saveTemplateNameBtn" style="width: 100%; margin-top: 5px;">Renommer</button>
+                </div>
+            </div>
+
             <div class="card">
                 <h3>Config du Template</h3>
                 <label>Image de Fond</label>

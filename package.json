@@ -19,6 +19,7 @@
   "homepage": "https://github.com/githubn0ne132/SignManagerGH#readme",
   "dependencies": {
     "body-parser": "^2.2.2",
+    "canvas": "^3.2.1",
     "cors": "^2.8.5",
     "express": "^5.2.1",
     "multer": "^2.0.2",
