@@ -1,13 +1,20 @@
 const multer = require('multer');
 const path = require('path');
 
+const fs = require('fs');
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
+        let dir = 'uploads/';
         if (file.fieldname === 'fontFile') {
-            cb(null, 'fonts/');
-        } else {
-            cb(null, 'uploads/');
+            dir = 'fonts/';
         }
+
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+
+        cb(null, dir);
     },
     filename: (req, file, cb) => {
         if (file.fieldname === 'fontFile') {
