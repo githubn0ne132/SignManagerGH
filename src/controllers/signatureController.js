@@ -60,7 +60,25 @@ exports.getSignatureImage = async (req, res) => {
         const fieldRows = await db.all("SELECT * FROM signature_fields WHERE template_id = ?", [templateRow.id]);
 
         // 4. Get Custom Fonts
-        const fontRows = await db.all("SELECT * FROM custom_fonts");
+        // 4. Get Available Fonts from Disk
+        const fs = require('fs');
+        const path = require('path');
+        const fontsDir = path.join(__dirname, '../../fonts');
+        let fontRows = [];
+
+        if (fs.existsSync(fontsDir)) {
+            const files = fs.readdirSync(fontsDir);
+            fontRows = files
+                .filter(file => ['.ttf', '.otf'].includes(path.extname(file).toLowerCase()))
+                .map(file => {
+                    const ext = path.extname(file);
+                    const basename = path.basename(file, ext);
+                    return {
+                        font_name: basename,
+                        file_path: path.join(fontsDir, file)
+                    };
+                });
+        }
 
         // 5. Generate Image
         const buffer = await generateSignature(templateRow, fieldRows, userData, fontRows);

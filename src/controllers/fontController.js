@@ -1,9 +1,30 @@
+const fs = require('fs');
+const path = require('path');
 const db = require('../config/database');
 
 exports.getFonts = async (req, res) => {
     try {
-        const rows = await db.all("SELECT * FROM custom_fonts");
-        res.json(rows);
+        const fontsDir = path.join(__dirname, '../../fonts');
+        if (!fs.existsSync(fontsDir)) {
+            return res.json([]);
+        }
+
+        const files = fs.readdirSync(fontsDir);
+        const fonts = files
+            .filter(file => ['.ttf', '.otf'].includes(path.extname(file).toLowerCase()))
+            .map((file, index) => {
+                const ext = path.extname(file);
+                const basename = path.basename(file, ext);
+                // Heuristic: "Roboto-Regular" -> "Roboto"
+                // Or just return the filename as the name for simplicity/accuracy
+                return {
+                    id: index + 1, // Pseudo-ID
+                    font_name: basename, // e.g. "Roboto-Regular"
+                    file_path: `fonts/${file}` // Relative path for frontend
+                };
+            });
+
+        res.json(fonts);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

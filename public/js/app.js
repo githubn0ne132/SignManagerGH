@@ -233,16 +233,43 @@ if (copyBtn) {
 }
 
 function doLegacyCopy() {
-    if (!outlookCode) return;
-    outlookCode.select();
-    outlookCode.setSelectionRange(0, 99999);
-    navigator.clipboard.writeText(outlookCode.value).then(() => {
-        alert("Code HTML copié ! (Mode texte simple)");
-    }).catch(e => alert("Erreur de copie"));
+    if (!outlookRichPreview) {
+        // Fallback to original textarea copy if preview doesn't exist
+        if (!outlookCode) return;
+        outlookCode.select();
+        outlookCode.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(outlookCode.value).then(() => {
+            alert("Code HTML copié ! (Mode texte simple)");
+        }).catch(e => alert("Erreur de copie"));
+        return;
+    }
+
+    // Select the rich text container
+    const range = document.createRange();
+    range.selectNodeContents(outlookRichPreview);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            alert("Signature copiée ! Vous pouvez maintenant la coller dans Outlook (Ctrl+V).");
+        } else {
+            throw new Error("execCommand failed");
+        }
+    } catch (err) {
+        console.error("Fallback copy failed", err);
+        alert("Impossible de copier automatiquement. Veuillez sélectionner la signature dans l'aperçu et faire Ctrl+C.");
+    }
+
+    // Clear selection (optional, maybe better to leave it so user sees what happened)
+    // selection.removeAllRanges(); 
 }
 
 // --- Outlook & Static Preview ---
 const outlookCode = document.getElementById('outlookCode');
+const outlookRichPreview = document.getElementById('outlookRichPreview'); // New Selection
 const staticPreview = document.getElementById('staticPreview');
 
 async function updateOutlookInfo() {
@@ -256,15 +283,22 @@ async function updateOutlookInfo() {
             if (res.ok) {
                 const html = await res.text();
                 outlookCode.value = html;
+
+                // Update Rich Preview
+                if (outlookRichPreview) {
+                    outlookRichPreview.innerHTML = html;
+                }
             } else {
                 // Fallback if fetch fails
                 const html = `<a href="#"><img src="${imageUrl}" alt="Signature"></a>`;
                 outlookCode.value = html;
+                if (outlookRichPreview) outlookRichPreview.innerHTML = html;
             }
         } catch (e) {
             console.error("Error fetching HTML snippet", e);
             const html = `<a href="#"><img src="${imageUrl}" alt="Signature"></a>`;
             outlookCode.value = html;
+            if (outlookRichPreview) outlookRichPreview.innerHTML = html;
         }
     }
 }

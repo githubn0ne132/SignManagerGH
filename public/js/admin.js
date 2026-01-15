@@ -396,7 +396,7 @@ addFieldBtn.addEventListener('click', async () => {
         variable_id: variable,
         x_pos: 50,
         y_pos: 50,
-        font_family: 'Arial',
+        font_family: propFontFamily.options.length > 0 ? propFontFamily.options[0].value : 'Arial',
         font_size: 16,
         font_color: '#000000',
         font_weight: 'normal',

@@ -1,6 +1,7 @@
 services:
   signmanager:
     build:
+      context: .
       dockerfile: Dockerfile
     container_name: signmanager
     ports:

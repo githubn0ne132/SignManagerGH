@@ -15,16 +15,20 @@ if (fs.existsSync(fontsDir)) {
     fs.readdirSync(fontsDir).forEach(file => {
         const ext = path.extname(file).toLowerCase();
         if (['.ttf', '.otf'].includes(ext)) {
-            // We use the filename (without ext) as the font family name by default
-            // or we could try to parse metadata. For simplicity -> filename base.
-            // OR the user inputs the font family name when uploading.
-            // Since we don't have that mapping easily available here without DB query,
-            // we might need to rely on the app to pass correct font paths or load dynamically.
+            const familyName = path.basename(file, ext);
+            // Register font with its filename as family (e.g., 'Roboto-Regular' -> family: 'Roboto-Regular')
+            // Also try to register it as the base name if possible, or just rely on the specific name.
+            // For simplicity and matching typical use, we'll strip '-Regular' or just use the whole name.
+            // Let's use the full filename base for now.
+            registerFont(path.join(fontsDir, file), { family: familyName });
 
-            // For now, let's register generic system fonts if we had them.
-            // But actually, registerFont requires a path.
-            // Let's create a function to register a specific font family if needed.
-            // registerFont(path.join(fontsDir, file), { family: path.basename(file, ext) });
+            // Also register sanitized names if needed (e.g. "OpenSans-Regular" -> "Open Sans")
+            // This is a naive heuristic but helpful for "OpenSans-Regular" to match "OpenSans" or "Open Sans"
+            if (familyName.includes('-')) {
+                const simpleName = familyName.split('-')[0];
+                registerFont(path.join(fontsDir, file), { family: simpleName });
+            }
+            console.log(`Registered font: ${familyName}`);
         }
     });
 }
