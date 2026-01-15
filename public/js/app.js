@@ -114,13 +114,17 @@ function generateForm() {
         const wrapper = document.createElement('div');
         wrapper.style.marginTop = '10px';
 
+        const inputId = `input_${field.variable_id}`;
+
         const label = document.createElement('label');
         label.innerText = field.field_label;
+        label.htmlFor = inputId;
         label.style.display = 'block';
         label.style.fontWeight = '600';
         label.style.marginBottom = '5px';
 
         const input = document.createElement('input');
+        input.id = inputId;
         input.type = 'text';
         input.value = userData[field.variable_id] || '';
         input.placeholder = `Entrez ${field.field_label}`;
