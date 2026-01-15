@@ -8,7 +8,8 @@ RUN apk add --no-cache \
     jpeg-dev \
     pango-dev \
     giflib-dev \
-    python3
+    python3 \
+    py3-setuptools
 
 WORKDIR /app
 
