@@ -199,12 +199,46 @@ const copyBtn = document.getElementById('copyBtn');
 if (copyBtn) {
     copyBtn.addEventListener('click', () => {
         if (!outlookCode) return;
-        outlookCode.select();
-        outlookCode.setSelectionRange(0, 99999); // Mobile
-        navigator.clipboard.writeText(outlookCode.value).then(() => {
-            alert("Code copié !");
-        });
+
+        const htmlContent = outlookCode.value;
+        // Check if ClipboardItem is supported (modern browsers)
+        if (typeof ClipboardItem !== "undefined" && navigator.clipboard && navigator.clipboard.write) {
+            try {
+                // We provide both HTML and Plain Text.
+                // Outlook prefers text/html.
+                const blobHtml = new Blob([htmlContent], { type: "text/html" });
+                const blobText = new Blob([htmlContent], { type: "text/plain" });
+
+                const data = [new ClipboardItem({
+                    ["text/html"]: blobHtml,
+                    ["text/plain"]: blobText
+                })];
+
+                navigator.clipboard.write(data).then(() => {
+                    alert("Signature copiée ! Vous pouvez maintenant la coller dans Outlook (Ctrl+V).");
+                }).catch(err => {
+                    console.error("Rich copy failed:", err);
+                    // Fallback to simple text copy
+                    doLegacyCopy();
+                });
+            } catch (e) {
+                console.error("ClipboardItem error:", e);
+                doLegacyCopy();
+            }
+        } else {
+            // Fallback
+            doLegacyCopy();
+        }
     });
+}
+
+function doLegacyCopy() {
+    if (!outlookCode) return;
+    outlookCode.select();
+    outlookCode.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(outlookCode.value).then(() => {
+        alert("Code HTML copié ! (Mode texte simple)");
+    }).catch(e => alert("Erreur de copie"));
 }
 
 // --- Outlook & Static Preview ---
