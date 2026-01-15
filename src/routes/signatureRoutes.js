@@ -3,6 +3,6 @@ const router = express.Router();
 const signatureController = require('../controllers/signatureController');
 
 router.get('/:userId/html', signatureController.getHtmlSnippet);
-router.get('/:userId/image.png', signatureController.getSignatureImage);
+router.get('/:publicId/image.png', signatureController.getSignatureImage);
 
 module.exports = router;

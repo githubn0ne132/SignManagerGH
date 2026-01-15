@@ -23,6 +23,7 @@ const saveTemplateNameBtn = document.getElementById('saveTemplateNameBtn');
 
 const canvasWidthInput = document.getElementById('canvasWidth');
 const canvasHeightInput = document.getElementById('canvasHeight');
+const redirectUrlInput = document.getElementById('redirectUrlInput');
 const bgImageInput = document.getElementById('bgImageInput');
 const saveConfigBtn = document.getElementById('saveConfigBtn');
 
@@ -143,6 +144,7 @@ async function loadTemplateDetails(id) {
     // Config inputs
     canvasWidthInput.value = template.canvas_width;
     canvasHeightInput.value = template.canvas_height;
+    redirectUrlInput.value = template.redirect_url || '';
 
     // Canvas dimensions
     canvas.setWidth(template.canvas_width);
@@ -306,6 +308,7 @@ saveConfigBtn.addEventListener('click', async () => {
     formData.append('canvas_width', canvasWidthInput.value);
     formData.append('canvas_height', canvasHeightInput.value);
     formData.append('name', templateNameInput.value);
+    formData.append('redirect_url', redirectUrlInput.value);
 
     if (bgImageInput.files[0]) {
         formData.append('bgImage', bgImageInput.files[0]);

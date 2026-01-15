@@ -10,7 +10,6 @@ const userDashboard = document.getElementById('userDashboard');
 const userIdInput = document.getElementById('userIdInput');
 const startBtn = document.getElementById('startBtn');
 const dynamicForm = document.getElementById('dynamicForm');
-const downloadBtn = document.getElementById('downloadBtn');
 
 // --- Auth / Entry ---
 
@@ -195,36 +194,43 @@ async function saveData() {
 }
 
 // --- Download ---
-downloadBtn.addEventListener('click', () => {
-    const dataURL = canvas.toDataURL({
-        format: 'png',
-        multiplier: 2 // Retina support / higher quality
+// --- Copy ---
+const copyBtn = document.getElementById('copyBtn');
+if (copyBtn) {
+    copyBtn.addEventListener('click', () => {
+        if (!outlookCode) return;
+        outlookCode.select();
+        outlookCode.setSelectionRange(0, 99999); // Mobile
+        navigator.clipboard.writeText(outlookCode.value).then(() => {
+            alert("Code copié !");
+        });
     });
-
-    const link = document.createElement('a');
-    link.download = `signature-${currentUser}.png`;
-    link.href = dataURL;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-});
+}
 
 // --- Outlook & Static Preview ---
 const outlookCode = document.getElementById('outlookCode');
 const staticPreview = document.getElementById('staticPreview');
 
-function updateOutlookInfo() {
+async function updateOutlookInfo() {
     const origin = window.location.origin;
     const imageUrl = `${origin}/signature/${currentUser}/image.png`;
 
-    // Force cache bypass for preview
-    if (staticPreview) {
-        staticPreview.src = imageUrl + '?t=' + new Date().getTime();
-    }
-
     // HTML Code
     if (outlookCode) {
-        const html = `<a href="#"><img src="${imageUrl}" alt="Signature"></a>`;
-        outlookCode.value = html;
+        try {
+            const res = await fetch(`/signature/${currentUser}/html`);
+            if (res.ok) {
+                const html = await res.text();
+                outlookCode.value = html;
+            } else {
+                // Fallback if fetch fails
+                const html = `<a href="#"><img src="${imageUrl}" alt="Signature"></a>`;
+                outlookCode.value = html;
+            }
+        } catch (e) {
+            console.error("Error fetching HTML snippet", e);
+            const html = `<a href="#"><img src="${imageUrl}" alt="Signature"></a>`;
+            outlookCode.value = html;
+        }
     }
 }

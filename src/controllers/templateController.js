@@ -30,16 +30,16 @@ exports.createTemplate = async (req, res) => {
 };
 
 exports.updateTemplate = async (req, res) => {
-    const { canvas_width, canvas_height, name } = req.body;
+    const { canvas_width, canvas_height, name, redirect_url } = req.body;
     const id = req.params.id;
     let sql, params;
 
     if (req.file) {
-        sql = `UPDATE templates SET bg_image_path = ?, canvas_width = ?, canvas_height = ?, name = ? WHERE id = ?`;
-        params = [req.file.path, canvas_width, canvas_height, name, id];
+        sql = `UPDATE templates SET bg_image_path = ?, canvas_width = ?, canvas_height = ?, name = ?, redirect_url = ? WHERE id = ?`;
+        params = [req.file.path, canvas_width, canvas_height, name, redirect_url, id];
     } else {
-        sql = `UPDATE templates SET canvas_width = ?, canvas_height = ?, name = ? WHERE id = ?`;
-        params = [canvas_width, canvas_height, name, id];
+        sql = `UPDATE templates SET canvas_width = ?, canvas_height = ?, name = ?, redirect_url = ? WHERE id = ?`;
+        params = [canvas_width, canvas_height, name, redirect_url, id];
     }
 
     try {

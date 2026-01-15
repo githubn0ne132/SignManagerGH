@@ -1,9 +1,12 @@
 {
   "name": "signmanagergh",
   "version": "1.0.0",
-  "description": "📄 PRD : Générateur de Signatures DynamiquesRôle : Product OwnerStatut : Validé pour DéveloppementStack : Frontend (JS/Canvas), Backend (Node/SQLite)1. Vue d'ensemble du projetL'application \"Signature Generator\" permet de standardiser les signatures email des collaborateurs. L'administrateur définit un template visuel (image de fond + positions des textes) et l'utilisateur final n'a qu'à saisir ses informations pour obtenir un export image (.png) prêt à l'emploi.2. Architecture Technique & Persistance2.1 Moteur de Rendu (Canvas)Librairie conseillée : Fabric.js ou Konva.js pour faciliter le Drag & Drop et la manipulation d'objets côté Admin.Sortie : canvas.toDataURL('image/png') avec un ratio de pixel élevé pour éviter le flou sur les écrans Retina.2.2 Base de données (SQLite)La persistance doit être gérée via SQLite.Table Config : Stocke les paramètres globaux (dimensions, URL du fond).Table Fields : Liste des champs éditables (ID, position X, position Y, styles).Table Users : Stocke l'ID de l'utilisateur et un objet JSON contenant ses valeurs personnalisées.3. Spécifications Fonctionnelles3.1 Interface Administrateur (Admin-Only)Authentification : Accès protégé par un mot de passe défini en variable d'environnement (ADMIN_PASSWORD).Configuration du Support :Upload d'image de fond (Background).Définition de la largeur et hauteur cible (ex: 600x200px).Éditeur de Champs (WYSIWYG) :Création de variables (ex: nom_complet, titre_poste).Positionnement par Drag & Drop sur le canevas.Panneau de propriétés : Sélection de police (Google Fonts), Taille, Couleur (Hex), Letter-spacing.3.2 Interface UtilisateurConnexion simplifiée : Saisie d'un identifiant (Email ou Matricule).Récupération SQLite : * Si l'ID existe : Pré-remplissage automatique du formulaire.Sinon : Champs vides.Formulaire Dynamique : Les champs s'affichent selon la configuration Fields de l'admin.Live Preview : Chaque caractère saisi met à jour le Canvas instantanément.Export : Bouton \"Télécharger ma signature\" (Fichier PNG).4. Modèle de Données (SQLite)-- Table des configurations de template CREATE TABLE template_config (     id INTEGER PRIMARY KEY AUTOINCREMENT,     bg_image_path TEXT,     canvas_width INTEGER DEFAULT 600,     canvas_height INTEGER DEFAULT 200 );",
-  "main": "index.js",
+  "description": "Signature Generator Application",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
+    "init-db": "node scripts/init_db.js",
+    "update-db": "node scripts/update_db.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,7 +21,6 @@
   },
   "homepage": "https://github.com/githubn0ne132/SignManagerGH#readme",
   "dependencies": {
-    "body-parser": "^2.2.2",
     "canvas": "^3.2.1",
     "cors": "^2.8.5",
     "express": "^5.2.1",

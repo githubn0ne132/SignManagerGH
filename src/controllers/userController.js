@@ -18,8 +18,20 @@ exports.saveUserData = async (req, res) => {
     const payload = JSON.stringify(req.body);
 
     try {
-        await db.run(`INSERT OR REPLACE INTO user_data (user_identifier, payload) VALUES (?, ?)`, [userIdentifier, payload]);
-        res.json({ success: true });
+        // Check if user exists
+        const existingUser = await db.get("SELECT public_id FROM user_data WHERE user_identifier = ?", [userIdentifier]);
+
+        if (existingUser) {
+            // Update existing user
+            await db.run("UPDATE user_data SET payload = ? WHERE user_identifier = ?", [payload, userIdentifier]);
+            res.json({ success: true, publicId: existingUser.public_id });
+        } else {
+            // Create new user
+            const crypto = require('crypto');
+            const publicId = crypto.randomBytes(3).toString('hex');
+            await db.run("INSERT INTO user_data (user_identifier, payload, public_id) VALUES (?, ?, ?)", [userIdentifier, payload, publicId]);
+            res.json({ success: true, publicId: publicId });
+        }
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
