@@ -18,11 +18,33 @@ startBtn.addEventListener('click', async () => {
     const id = userIdInput.value.trim();
     if (!id) return alert('Veuillez entrer un identifiant');
 
-    currentUser = id;
-    loginSection.style.display = 'none';
-    userDashboard.style.display = 'flex';
+    // Store original state
+    const originalText = startBtn.innerText;
 
-    await initUser();
+    // Set loading state
+    startBtn.innerText = 'Chargement...';
+    startBtn.disabled = true;
+    startBtn.style.opacity = '0.7';
+    startBtn.style.cursor = 'wait';
+
+    currentUser = id;
+
+    try {
+        await initUser();
+
+        // Hide login and show dashboard only on success
+        loginSection.style.display = 'none';
+        userDashboard.style.display = 'flex';
+    } catch (error) {
+        console.error("Initialization failed", error);
+        alert("Une erreur est survenue lors du chargement. Veuillez réessayer.");
+
+        // Reset button state
+        startBtn.innerText = originalText;
+        startBtn.disabled = false;
+        startBtn.style.opacity = '1';
+        startBtn.style.cursor = 'pointer';
+    }
 });
 
 // --- Initialization ---
@@ -45,6 +67,7 @@ async function initUser() {
 async function loadAvailableFonts() {
     try {
         const res = await fetch('/api/fonts');
+        if (!res.ok) throw new Error('Failed to load fonts');
         const fonts = await res.json();
 
         const styleSheet = document.createElement("style");
@@ -67,6 +90,7 @@ async function loadAvailableFonts() {
 
 async function loadConfig() {
     const res = await fetch('/api/config');
+    if (!res.ok) throw new Error('Failed to load config');
     const config = await res.json();
 
     if (config) {
@@ -78,24 +102,36 @@ async function loadConfig() {
                 ? config.bg_image_path
                 : '/' + config.bg_image_path;
 
-            fabric.Image.fromURL(imgUrl, (img) => {
-                canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
-                    scaleX: canvas.width / img.width,
-                    scaleY: canvas.height / img.height
-                });
-            }, { crossOrigin: 'anonymous' });
+            // Promisify fabric image loading with error handling
+            await new Promise((resolve, reject) => {
+                fabric.Image.fromURL(imgUrl, (img) => {
+                    if (!img) {
+                        console.warn("Failed to load background image:", imgUrl);
+                        // Resolve anyway to allow app to continue without background
+                        resolve();
+                        return;
+                    }
+                    canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
+                        scaleX: canvas.width / img.width,
+                        scaleY: canvas.height / img.height
+                    });
+                    resolve();
+                }, { crossOrigin: 'anonymous' });
+            });
         }
     }
 }
 
 async function loadFields() {
     const res = await fetch('/api/fields');
+    if (!res.ok) throw new Error('Failed to load fields');
     currentFields = await res.json();
 }
 
 async function loadUserData() {
     try {
         const res = await fetch(`/api/user/${currentUser}`);
+        if (!res.ok) throw new Error('Failed to load user data');
         const data = await res.json();
         if (data) {
             userData = data;
@@ -114,13 +150,18 @@ function generateForm() {
         const wrapper = document.createElement('div');
         wrapper.style.marginTop = '10px';
 
+        // Create unique ID for the input
+        const inputId = `field_${field.variable_id}`;
+
         const label = document.createElement('label');
         label.innerText = field.field_label;
+        label.setAttribute('for', inputId); // Associate label with input
         label.style.display = 'block';
         label.style.fontWeight = '600';
         label.style.marginBottom = '5px';
 
         const input = document.createElement('input');
+        input.id = inputId; // Set the unique ID
         input.type = 'text';
         input.value = userData[field.variable_id] || '';
         input.placeholder = `Entrez ${field.field_label}`;
