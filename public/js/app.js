@@ -19,10 +19,28 @@ startBtn.addEventListener('click', async () => {
     if (!id) return alert('Veuillez entrer un identifiant');
 
     currentUser = id;
-    loginSection.style.display = 'none';
-    userDashboard.style.display = 'flex';
 
-    await initUser();
+    // UX: Loading state
+    const originalText = startBtn.innerText;
+    startBtn.innerText = 'Chargement...';
+    startBtn.disabled = true;
+
+    try {
+        await initUser();
+
+        // Only switch view after successful load
+        loginSection.style.display = 'none';
+        userDashboard.style.display = 'flex';
+
+        // Reset button state in case we return
+        startBtn.innerText = originalText;
+        startBtn.disabled = false;
+    } catch (error) {
+        console.error("Initialization failed", error);
+        alert("Une erreur est survenue lors du chargement. Veuillez réessayer.");
+        startBtn.innerText = originalText;
+        startBtn.disabled = false;
+    }
 });
 
 // --- Initialization ---
@@ -114,13 +132,17 @@ function generateForm() {
         const wrapper = document.createElement('div');
         wrapper.style.marginTop = '10px';
 
+        const inputId = `field_${field.variable_id}`; // Unique ID
+
         const label = document.createElement('label');
         label.innerText = field.field_label;
+        label.htmlFor = inputId; // Accessible link
         label.style.display = 'block';
         label.style.fontWeight = '600';
         label.style.marginBottom = '5px';
 
         const input = document.createElement('input');
+        input.id = inputId; // Accessible ID
         input.type = 'text';
         input.value = userData[field.variable_id] || '';
         input.placeholder = `Entrez ${field.field_label}`;
